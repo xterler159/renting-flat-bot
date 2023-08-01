@@ -1,0 +1,18 @@
+*.pyc
+.vscode
+*.db
+test_scripts
+.coverage
+htmlcov
+coverage.xml
+.*_cache
+PTGD_ROOT_CERT
+
+# local dev environment files
+*.local.*
+
+requirements.txt
+public
+dist
+
+renting_flat_bot/bot/data

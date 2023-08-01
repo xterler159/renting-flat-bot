@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "renting-flat-bot"
+version = "0.1.0"
+description = ""
+authors = ["Kevin FERNANDO <kfernando-prestataire@seres.fr>"]
+readme = "README.md"
+packages = [{include = "renting_flat_bot"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+beautifulsoup4 = "^4.12.2"
+httpx = "^0.24.1"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
