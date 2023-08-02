@@ -1,5 +1,7 @@
 import os
 import subprocess
+import time
+import re
 
 import httpx
 
@@ -45,41 +47,25 @@ if __name__ == "__main__":
     html = get_data(URL, generate_html_file=False)
     soup = BeautifulSoup(html, HTML_PARSER)
 
-    # """Annonce sample. So, we have to extract those divs first."""
-    # annonce_17133746 = soup.find_all(id="annonce_17133746")
-    # for annonce in annonce_17133746:
-    #     write_data(str(annonce), file_name="annonce_17133746")
-    #     print(annonce)
+    announce_div = soup.find("div", id="listAnnonces")
+    announces = announce_div.find_all(
+        "div", id=lambda value: value and value.startswith("annonce_")
+    )
+    announces_str = ""
+    price_list = []
 
-    annonce_div = str(soup.find_all("div", id="listAnnonces")[0])
-    annonce_div_soup = BeautifulSoup(annonce_div, HTML_PARSER)
-    annonce_div_links = annonce_div_soup.find_all("a")
-    links = ""
+    for announce in announces:
+        imgs = announce.find_all("img")
+        prices = announce.find_all("span", class_="annPrix")
 
-    for link in annonce_div_links:
-        links += str(link)
+        for price in prices:
+            cleared_prices = re.sub("[^0-9]", "", price.getText(strip=True))
+            price_list.append(int(cleared_prices))
 
-    links_soup = BeautifulSoup(links, HTML_PARSER)
-    # write_data(str(links_soup), file_name="links_soup")
-    annonce_links = links_soup.find_all("a", class_="annLink")
-    annonces = ""
+        # for img in imgs:
+        #     subprocess.run(["explorer.exe", str(img.get("data-original"))])
+        #     time.sleep(1)
+        # print(img.get("data-original"))
+        # annonces_str += str(annonce)
 
-    for annonce_link in annonce_links:
-        annonces += str(
-            annonce_link.find(
-                "div", id=lambda value: value and value.startswith("annonce_")
-            )
-        )
-
-    # write_data(annonces, file_name="annonces")
-
-    annonces_soup = BeautifulSoup(annonces, HTML_PARSER)
-    imgs = annonces_soup.find_all("img")
-
-    # print(imgs[0]["data-original"])
-    img_1_hrf = imgs[0]["data-original"]
-
-    exit_code = subprocess.run(["explorer.exe", f"{img_1_hrf}"])
-    print(exit_code)
-
-    # subprocess.run("explorer.exe")
+    price_list.sort()
