@@ -56,45 +56,71 @@ def bot():
     )
 
     criterias_str = ""
+    announces_str = ""
+    announce_parent_str = ""
+    prices_str = ""
     price_list = []
 
     # data
     announce_data = {
         "price": 0,
         "href": "",
-        "surface": "",
+        "surface": 0,
         "rooms": "",
         "bathrooms": "",
     }
     data = {"announces": []}
 
-    for index, announce in enumerate(announces):
-        prices = announce.find_all("span", class_="annPrix")
-        criterias = announce.find_all("span", class_="annCriteres")
+    for announce in announces:
+        announce_parent_str += str(announce.parent)
+        announces_str += str(announce)
+        cleared_price = 0
+        prices_sp = announce.find_all("span", class_="annPrix")
+        criterias_sp = announce.find_all("span", class_="annCriteres")
 
-        for criteria in criterias:
-            unit_span_sp = criteria.find_all(
-                "span", class_=lambda value: value and value.startswith("unit")
-            )
-            criterias_str += str(criteria.prettify())
-            values = criteria.find_all("div")
+        # adding prices
+        for price_sp in prices_sp:
+            cleared_price = int(re.sub("[^0-9]", "", price_sp.getText(strip=True)))
+            prices_str += str(cleared_price) + " €\n"
 
-            # print(criteria.find_all("span", class_="unit"))
-
-            # for unit_sp in unit_span_sp:
-            #     print(unit_sp.parent)
-
-            # print(values)
-
-        for price in prices:
-            cleared_price = int(re.sub("[^0-9]", "", price.getText(strip=True)))
-            price_list.append(int(cleared_price))
-
-    for price in price_list:
-        announce_data["price"] = price
+        announce_data["price"] = cleared_price
         data["announces"].append({**announce_data})
+
+        # adding square meters
+        # for criteria_sp in criterias_sp:
+        #     criteria_sp.find_all(
+        #         "span", class_=lambda value: value and value.startswith("unit")
+        #     )
+        #     criterias_str += str(criteria_sp.prettify())
+        #     values = criteria_sp.find_all("div")
+        #
+        #     for value in values:
+        #         unit_span_sp = value.find("span", class_="unit")
+        #
+        #         if unit_span_sp.text == "m²":
+        #             sq_meter = int(unit_span_sp.parent.next)
+        #             # print("sq_meter:", sq_meter)
+        #             announce_data["surface"] = sq_meter
+        #             data["announces"].append({**announce_data})
+        #
+        #         # print(value.text)
+        #         # print(value)
+        #
+        #     # print(criteria.find_all("span", class_="unit"))
+        #
+        #     # for unit_sp in unit_span_sp:
+        #     #     print(unit_sp.parent)
+        #
+        #     # print(values)
+
+        # for price in price_list:
+        #     announce_data["price"] = price
+        #     data["announces"].append({**announce_data})
         # not working, I don't know why
         # data["announces"].append(announce_data)
+
+    write_data(json.dumps(data), file_name="data", extension="json")
+    # write_data(prices_str, file_name="prices")
 
 
 if __name__ == "__main__":
