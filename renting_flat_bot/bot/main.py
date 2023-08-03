@@ -1,6 +1,7 @@
 import os
 import subprocess
 import time
+import json
 import re
 
 import httpx
@@ -8,6 +9,11 @@ import httpx
 from pathlib import Path
 
 from bs4 import BeautifulSoup
+
+URL = (
+    "https://www.ouestfrance-immo.com/immobilier/location/appartement/rennes-35-35238/"
+)
+HTML_PARSER = "html.parser"
 
 
 def write_data(data, file_name="result", extension="html", folder_name="data"):
@@ -40,10 +46,7 @@ def get_data(url, generate_html_file=False):
     return to_html
 
 
-if __name__ == "__main__":
-    URL = "https://www.ouestfrance-immo.com/immobilier/location/appartement/rennes-35-35238/"
-    HTML_PARSER = "html.parser"
-
+def bot():
     html = get_data(URL, generate_html_file=False)
     soup = BeautifulSoup(html, HTML_PARSER)
 
@@ -51,21 +54,48 @@ if __name__ == "__main__":
     announces = announce_div.find_all(
         "div", id=lambda value: value and value.startswith("annonce_")
     )
-    announces_str = ""
+
+    criterias_str = ""
     price_list = []
 
-    for announce in announces:
-        imgs = announce.find_all("img")
+    # data
+    announce_data = {
+        "price": 0,
+        "href": "",
+        "surface": "",
+        "rooms": "",
+        "bathrooms": "",
+    }
+    data = {"announces": []}
+
+    for index, announce in enumerate(announces):
         prices = announce.find_all("span", class_="annPrix")
+        criterias = announce.find_all("span", class_="annCriteres")
+
+        for criteria in criterias:
+            unit_span_sp = criteria.find_all(
+                "span", class_=lambda value: value and value.startswith("unit")
+            )
+            criterias_str += str(criteria.prettify())
+            values = criteria.find_all("div")
+
+            # print(criteria.find_all("span", class_="unit"))
+
+            # for unit_sp in unit_span_sp:
+            #     print(unit_sp.parent)
+
+            # print(values)
 
         for price in prices:
-            cleared_prices = re.sub("[^0-9]", "", price.getText(strip=True))
-            price_list.append(int(cleared_prices))
+            cleared_price = int(re.sub("[^0-9]", "", price.getText(strip=True)))
+            price_list.append(int(cleared_price))
 
-        # for img in imgs:
-        #     subprocess.run(["explorer.exe", str(img.get("data-original"))])
-        #     time.sleep(1)
-        # print(img.get("data-original"))
-        # annonces_str += str(annonce)
+    for price in price_list:
+        announce_data["price"] = price
+        data["announces"].append({**announce_data})
+        # not working, I don't know why
+        # data["announces"].append(announce_data)
 
-    price_list.sort()
+
+if __name__ == "__main__":
+    bot()
